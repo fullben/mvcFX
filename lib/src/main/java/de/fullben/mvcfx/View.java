@@ -53,6 +53,7 @@ import javafx.stage.Window;
  * #FXML_DIR} directory. The name of the file must be equal to the simple class name of the view
  * class.
  *
+ * @see StageView
  * @see Controller
  * @param <ModelType> the type of the model of this view
  * @param <ControllerType> the type of the controller of this view
