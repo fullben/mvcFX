@@ -91,6 +91,8 @@ public abstract class OperatingSystem {
     String osName = System.getProperty("os.name");
     if (PlatformUtil.isWindows()) {
       return new Windows(osName);
+    } else if (PlatformUtil.isMac()) {
+      return new MacOs(osName);
     } else {
       return new UnsupportedOperatingSystem(osName);
     }
