@@ -1,5 +1,6 @@
 package de.fullben.mvcfx.os;
 
+import com.sun.javafx.PlatformUtil;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,7 +53,7 @@ public abstract class OperatingSystem {
   public abstract void openFileManager(Path directory) throws IOException;
 
   /**
-   * Opens the commandline interface of the operating system hosting the JVM at the specified
+   * Opens the command-line interface of the operating system hosting the JVM at the specified
    * directory.
    *
    * @param directory the initial directory of the interface
@@ -88,6 +89,10 @@ public abstract class OperatingSystem {
 
   private static OperatingSystem getHostingOperatingSystem() {
     String osName = System.getProperty("os.name");
-    return new UnsupportedOperatingSystem(osName);
+    if (PlatformUtil.isWindows()) {
+      return new Windows(osName);
+    } else {
+      return new UnsupportedOperatingSystem(osName);
+    }
   }
 }
