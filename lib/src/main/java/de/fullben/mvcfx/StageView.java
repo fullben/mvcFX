@@ -63,9 +63,9 @@ public abstract class StageView<ModelType, ControllerType extends Controller>
   }
 
   /**
-   * Loads the view from the {@code fxml} file and injects all relevant member fields. This is
-   * followed by initializing the the stage of the view, as defined by {@link
-   * #configureStage(Parent)}.
+   * Loads the view from the {@code fxml} file and injects all relevant member fields before
+   * registering the view with the view manager. This is followed by initializing the the stage of
+   * the view, as defined by {@link #configureStage(Parent)}.
    *
    * <p>Note that this method ensures that the stage
    *
@@ -84,17 +84,29 @@ public abstract class StageView<ModelType, ControllerType extends Controller>
     if (stage != null) {
       throw new IllegalStateException("Cannot load stage, has been loaded already");
     }
-    super.load();
+    loadWithoutRegister();
     stage = configureStage(getRoot());
     stage.initModality(Modality.WINDOW_MODAL);
     stage.initOwner(findVisibleWindow());
     // Ensure stage is not visible, even if configured to be so
     stage.hide();
+    ViewManager.get().register(this);
   }
 
   /**
    * Implementations of this method should create and configure a window which displays the user
-   * interface defined by the given {@code root}.
+   * interface defined by the given {@code root}. The following snippet provides a basic example for
+   * an implementation of this method.
+   *
+   * <pre>
+   * &#064;FXML
+   * public void configureStage(Parent root) {
+   *   Stage stage = new Stage();
+   *   stage.setTitle(getString("stage.title");
+   *   stage.setScene(new Scene(root));
+   *   return stage;
+   * }
+   * </pre>
    *
    * <p>This method is called automatically after the view associated with this class has been
    * loaded from the corresponding {@code fxml} file. The root element of the loaded view will be
@@ -137,7 +149,7 @@ public abstract class StageView<ModelType, ControllerType extends Controller>
   private void assertStageLoaded() {
     if (stage == null) {
       throw new IllegalStateException(
-          "Stage has not been loaded yet (Did you call load() in your view's constructor?)");
+          "Stage has not been loaded yet (Did you call load() in your view constructor?)");
     }
   }
 

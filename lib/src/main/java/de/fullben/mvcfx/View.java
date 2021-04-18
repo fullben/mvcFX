@@ -8,6 +8,7 @@ import java.text.MessageFormat;
 import java.util.ResourceBundle;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Window;
 
 /**
@@ -86,13 +87,26 @@ public abstract class View<ModelType, ControllerType extends Controller> {
   }
 
   /**
-   * Loads the view from the {@code fxml} file and injects all relevant member fields.
+   * Loads the view from the {@code fxml} file and injects all relevant member fields before
+   * registering the view with the view manager.
    *
    * @throws IOException if an error is encountered while attempting to read from the view file
    * @throws IllegalStateException if the method is called more than once during the object's life
    *     cycle
    */
   protected void load() throws IOException {
+    loadWithoutRegister();
+    ViewManager.get().register(this);
+  }
+
+  /**
+   * Loads the view from the {@code fxml} file and injects all relevant member fields.
+   *
+   * @throws IOException if an error is encountered while attempting to read from the view file
+   * @throws IllegalStateException if the method is called more than once during the object's life
+   *     cycle
+   */
+  void loadWithoutRegister() throws IOException {
     if (root != null) {
       throw new IllegalStateException("Cannot load view, has been loaded already");
     }
@@ -116,7 +130,20 @@ public abstract class View<ModelType, ControllerType extends Controller> {
   }
 
   /**
-   * Returns the window associated with the root element of the view.
+   * Returns the scene of the root node (accessible through {@link #getRoot()}) of the view.
+   *
+   * @return the scene hosting the root node
+   * @throws IllegalStateException if this is method is called before {@link #load()} has been
+   *     called
+   */
+  public Scene getScene() {
+    assertViewLoaded();
+    return root.getScene();
+  }
+
+  /**
+   * Returns the window associated with the root element (accessible through {@link #getRoot()}) of
+   * the view.
    *
    * @return the window hosting the view
    * @throws IllegalStateException if this is method is called before {@link #load()} has been
@@ -190,7 +217,7 @@ public abstract class View<ModelType, ControllerType extends Controller> {
   private void assertViewLoaded() {
     if (!isLoaded()) {
       throw new IllegalStateException(
-          "View has not been loaded yet (Missing call to load() in the view constructor?)");
+          "View has not been loaded yet (Did you call load() in the view constructor?)");
     }
   }
 }

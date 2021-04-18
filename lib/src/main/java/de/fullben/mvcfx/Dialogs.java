@@ -201,6 +201,7 @@ public final class Dialogs {
     alert.setHeaderText(header);
     alert.setContentText(content);
     alert.initOwner(owner);
+    ViewManager.get().register(alert);
     return alert;
   }
 
@@ -210,6 +211,7 @@ public final class Dialogs {
     alert.setHeaderText(header);
     alert.setContentText(content);
     alert.initOwner(owner);
+    ViewManager.get().register(alert);
     return alert;
   }
 
