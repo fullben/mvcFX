@@ -63,9 +63,9 @@ public abstract class StageView<ModelType, ControllerType extends Controller>
   }
 
   /**
-   * Loads the view from the {@code fxml} file and injects all relevant member fields. This is
-   * followed by initializing the the stage of the view, as defined by {@link
-   * #configureStage(Parent)}.
+   * Loads the view from the {@code fxml} file and injects all relevant member fields before
+   * registering the view with the view manager. This is followed by initializing the the stage of
+   * the view, as defined by {@link #configureStage(Parent)}.
    *
    * <p>Note that this method ensures that the stage
    *
@@ -84,12 +84,13 @@ public abstract class StageView<ModelType, ControllerType extends Controller>
     if (stage != null) {
       throw new IllegalStateException("Cannot load stage, has been loaded already");
     }
-    super.load();
+    loadWithoutRegister();
     stage = configureStage(getRoot());
     stage.initModality(Modality.WINDOW_MODAL);
     stage.initOwner(findVisibleWindow());
     // Ensure stage is not visible, even if configured to be so
     stage.hide();
+    ViewManager.get().register(this);
   }
 
   /**
