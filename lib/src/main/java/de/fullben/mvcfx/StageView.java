@@ -95,7 +95,18 @@ public abstract class StageView<ModelType, ControllerType extends Controller>
 
   /**
    * Implementations of this method should create and configure a window which displays the user
-   * interface defined by the given {@code root}.
+   * interface defined by the given {@code root}. The following snippet provides a basic example for
+   * an implementation of this method.
+   *
+   * <pre>
+   * &#064;FXML
+   * public void configureStage(Parent root) {
+   *   Stage stage = new Stage();
+   *   stage.setTitle(getString("stage.title");
+   *   stage.setScene(new Scene(root));
+   *   return stage;
+   * }
+   * </pre>
    *
    * <p>This method is called automatically after the view associated with this class has been
    * loaded from the corresponding {@code fxml} file. The root element of the loaded view will be
@@ -138,7 +149,7 @@ public abstract class StageView<ModelType, ControllerType extends Controller>
   private void assertStageLoaded() {
     if (stage == null) {
       throw new IllegalStateException(
-          "Stage has not been loaded yet (Did you call load() in your view's constructor?)");
+          "Stage has not been loaded yet (Did you call load() in your view constructor?)");
     }
   }
 
