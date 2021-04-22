@@ -3,6 +3,7 @@ package de.fullben.mvcfx;
 import static java.util.Objects.requireNonNull;
 
 import de.fullben.mvcfx.theme.OverridingStylesheetTheme;
+import de.fullben.mvcfx.theme.PlatformDefaultTheme;
 import de.fullben.mvcfx.theme.Theme;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -11,7 +12,11 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
+import javafx.scene.Parent;
 import javafx.scene.control.Alert;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /**
  * Each application has a {@code ViewManager} which keeps track of user interface components. The
@@ -28,23 +33,22 @@ public final class ViewManager {
   private static final ViewManager VIEW_MANAGER = new ViewManager();
   private final List<WeakReference<View<?, ?>>> viewRegistry;
   private final List<WeakReference<Alert>> alertRegistry;
-  private final Timer cleanUpTimer;
   private Theme theme;
 
   private ViewManager() {
     viewRegistry = Collections.synchronizedList(new ArrayList<>());
     alertRegistry = Collections.synchronizedList(new ArrayList<>());
-    cleanUpTimer = new Timer(true);
-    cleanUpTimer.scheduleAtFixedRate(
-        new TimerTask() {
-          @Override
-          public void run() {
-            cleanUpRegistries();
-          }
-        },
-        30000,
-        30000);
-    theme = null;
+    new Timer(true)
+        .scheduleAtFixedRate(
+            new TimerTask() {
+              @Override
+              public void run() {
+                cleanUpRegistries();
+              }
+            },
+            30000,
+            30000);
+    theme = new PlatformDefaultTheme();
   }
 
   /**
@@ -57,13 +61,49 @@ public final class ViewManager {
   }
 
   /**
+   * Applies the given overriding theme to the views registered with this manager. Before applying
+   * the theme, this method ensures that the views' current theme is equal to the given {@code
+   * baseTheme}.
+   *
+   * @param theme the new theme, must not be {@code null}
+   * @param baseTheme the base theme which will be overridden by the changes defined in the given
+   *     {@code theme}, must not be {@code null}
+   * @see #setTheme(Theme)
+   */
+  public void setTheme(OverridingStylesheetTheme theme, Theme baseTheme) {
+    requireNonNull(theme);
+    requireNonNull(baseTheme);
+    if (this.theme.equals(theme)) {
+      return;
+    }
+    if (this.theme.equals(baseTheme)) {
+      this.theme = theme;
+      forEachRegisteredView(this::applyTheme);
+      forEachRegisteredAlert(this::applyTheme);
+    } else {
+      forEachRegisteredView(
+          view -> {
+            applyTheme(view, baseTheme);
+            applyTheme(view, theme);
+          });
+      forEachRegisteredAlert(
+          alert -> {
+            applyTheme(alert, baseTheme);
+            applyTheme(alert, theme);
+          });
+      this.theme = theme;
+    }
+  }
+
+  /**
    * Applies the given theme to the views registered with this manager.
    *
    * @param theme the new theme, must not be {@code null}
+   * @see #setTheme(OverridingStylesheetTheme, Theme)
    */
   public void setTheme(Theme theme) {
     requireNonNull(theme, "Theme must not be null");
-    if (this.theme != null && this.theme.equals(theme)) {
+    if (this.theme.equals(theme)) {
       // If given theme equals current theme, do nothing
       return;
     }
@@ -124,10 +164,7 @@ public final class ViewManager {
     }
   }
 
-  private void applyTheme(View<?, ?> view) {
-    if (theme == null) {
-      return;
-    }
+  private void applyTheme(View<?, ?> view, Theme theme) {
     if (view instanceof StageView) {
       theme.applyTo(view.getScene());
     } else {
@@ -135,11 +172,16 @@ public final class ViewManager {
     }
   }
 
-  private void applyTheme(Alert alert) {
-    if (theme == null) {
-      return;
-    }
+  private void applyTheme(View<?, ?> view) {
+    applyTheme(view, theme);
+  }
+
+  private void applyTheme(Alert alert, Theme theme) {
     theme.applyTo(alert);
+  }
+
+  private void applyTheme(Alert alert) {
+    applyTheme(alert, theme);
   }
 
   private void removeOverridingTheme(View<?, ?> view) {
