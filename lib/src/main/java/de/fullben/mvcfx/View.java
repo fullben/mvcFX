@@ -2,156 +2,183 @@ package de.fullben.mvcfx;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.IOException;
-import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Window;
 
 /**
- * Base class for all view classes which manage a JavaFX user interface component loaded from an
- * {@code fxml} file.
+ * Base class for all view classes which manage JavaFX user interface components.
  *
- * <p>In order to load the user interface and inject it into the view class, any implementing views
- * must call the {@link #load()} method. This method should always be called as the last operation
- * the constructor of any view.
+ * <p>In order to build the user interface represented by an instance, any implementing views must
+ * override the {@link #initRoot()} method. This method is called automatically by the constructor
+ * of this class.
  *
  * <pre>
  *   public class MyView extends View&lt;MyModel, MyController&gt; {
  *     ...
- *     public MyView(MyModel model, MyController controller, ResourceBundle res) throws IOException {
- *       super(model, controller, res);
- *       load();
+ *     public MyView(MyModel m, MyController c, ResourceBundle r) {
+ *       super(m, c, r);
  *     }
  *
- *     &#064;FXML
- *     public void initialize() {
- *       // Your own initialization code here, called automatically after the constructor
+ *     &#064;Override
+ *     protected Parent initRoot() {
+ *       StackPane root = new StackPane();
+ *       Button btn = new Button(getString("btn.text"));
+ *       root.getChildren().add(btn);
+ *       return root;
  *     }
  *     ...
  * </pre>
  *
- * Alternatively, {@code load()} may also be called before some setup operations are performed on
- * user interface components which are injected by {@code load()}.
- *
- * <pre>
- *   ...
- *   &#064;FXML private TabPane tabs;
- *   private final int initialTabCount;
- *
- *   public MyView(MyModel model, MyController controller, ResourceBundle res) throws IOException {
- *     super(model, controller, res);
- *     load(); // Will inject tabs
- *     initialTabCount = tabs.getTabs().size();
- *   }
- *   ...
- * </pre>
- *
- * Note that the view expects to find the {@code fxml} source in a resource file found in the {@link
- * #FXML_DIR} directory. The name of the file must be equal to the simple class name of the view
- * class.
- *
  * @see StageView
- * @see Controller
+ * @see FxmlView
+ * @see FxmlStageView
  * @param <ModelType> the type of the model of this view
  * @param <ControllerType> the type of the controller of this view
  * @author Benedikt Full
  */
 public abstract class View<ModelType, ControllerType extends Controller> {
 
-  private static final String FXML_DIR = "/views/";
-  private static final String FXML_EXTENSION = ".fxml";
   private final ModelType model;
   private final ControllerType controller;
-  private final URL fxmlViewUrl;
   private final ResourceBundle resources;
   private Parent root;
 
   /**
-   * Creates a new view with the given resources. Callers of this constructor must also call {@link
-   * #load()}.
+   * Creates a new view with the given resources and calls {@link #initRoot()} to initialize the
+   * JavaFX user interface components represented by this {@code View} instance.
    *
    * @param model the model associated with this view
    * @param controller the controller of this view
    * @param resources the resource bundle to be utilized by this view
    */
   public View(ModelType model, ControllerType controller, ResourceBundle resources) {
-    this.model = requireNonNull(model, "Model must not be null");
-    this.controller = requireNonNull(controller, "Controller must not be null");
-    fxmlViewUrl = View.class.getResource(FXML_DIR + getClass().getSimpleName() + FXML_EXTENSION);
-    this.resources = requireNonNull(resources, "Resources must not be null");
-    root = null;
+    this(model, controller, resources, true);
   }
 
   /**
-   * Loads the view from the {@code fxml} file and injects all relevant member fields before
-   * registering the view with the view manager.
+   * Constructor for internal usage. Can be used to create a {@code View} that has an uninitialized
+   * root.
    *
-   * @throws IOException if an error is encountered while attempting to read from the view file
-   * @throws IllegalStateException if the method is called more than once during the object's life
-   *     cycle
-   */
-  protected void load() throws IOException {
-    loadWithoutRegister();
-    ViewManager.get().register(this);
-  }
-
-  /**
-   * Loads the view from the {@code fxml} file and injects all relevant member fields.
+   * <p>If the constructor is called with {@code false} for {@code initRoot}, it becomes the
+   * caller's responsibility to ensure that the root element of the view is initialized and that the
+   * view is registered with the {@link ViewManager}.
    *
-   * @throws IOException if an error is encountered while attempting to read from the view file
-   * @throws IllegalStateException if the method is called more than once during the object's life
-   *     cycle
+   * @param model the model associated with this view
+   * @param controller the controller of this view
+   * @param resources the resource bundle to be utilized by this view
+   * @param initRoot {@code true} if the user interface elements represented by this instance should
+   *     be initialized by calling {@link #initRoot()}, {@code false} if the root should remain
+   *     uninitialized
    */
-  void loadWithoutRegister() throws IOException {
-    if (root != null) {
-      throw new IllegalStateException("Cannot load view, has been loaded already");
+  View(ModelType model, ControllerType controller, ResourceBundle resources, boolean initRoot) {
+    this.model = requireNonNull(model);
+    this.controller = requireNonNull(controller);
+    this.resources = requireNonNull(resources);
+    if (initRoot) {
+      root = requireNonNull(initRoot());
+      ViewManager.get().register(this);
+    } else {
+      root = null;
     }
-    final FXMLLoader loader = new FXMLLoader();
-    loader.setController(this);
-    loader.setLocation(fxmlViewUrl);
-    loader.setResources(resources);
-    root = loader.load();
+  }
+
+  /**
+   * Implementations must initialize the user interface elements which this view represents. This
+   * method is called automatically by the constructor of this class.
+   *
+   * <p>The following snippet shows an example implementation of this method which creates a simple
+   * user interface that contains a button.
+   *
+   * <pre>
+   *   &#064;Override
+   *   protected Parent initRoot() {
+   *     StackPane root = new StackPane();
+   *     Button btn = new Button(getString("btn.text"));
+   *     root.getChildren().add(btn);
+   *     return root;
+   *   }
+   * </pre>
+   *
+   * @return the root element of the user interface elements represented by this view, must not be
+   *     {@code null}
+   */
+  protected abstract Parent initRoot();
+
+  /**
+   * Can be used to set the user interface components to be represented by this view instance. Note
+   * that this method can only be used if the instance's root node has not been assigned yet.
+   *
+   * @param root the root element of the user interface graph to be represented by this view
+   * @throws NullPointerException if the given {@code root} is {@code null}
+   * @throws IllegalStateException if the root node of this view already has a non-{@code null}
+   *     value
+   */
+  final void setRoot(Parent root) {
+    requireNonNull(root);
+    if (this.root != null) {
+      throw new IllegalStateException("Root node can only be set once");
+    }
+    this.root = root;
   }
 
   /**
    * Returns the root node of the view.
    *
    * @return the root element of the view
-   * @throws IllegalStateException if this is method is called before {@link #load()} has been
-   *     called
    */
-  public Parent getRoot() {
-    assertViewLoaded();
+  protected Parent getRoot() {
     return root;
   }
 
   /**
-   * Returns the scene of the root node (accessible through {@link #getRoot()}) of the view.
+   * Returns the scene of the root node (initialized by {@link #initRoot()} of the view.
    *
    * @return the scene hosting the root node
-   * @throws IllegalStateException if this is method is called before {@link #load()} has been
-   *     called
    */
-  public Scene getScene() {
-    assertViewLoaded();
+  protected Scene getScene() {
     return root.getScene();
   }
 
   /**
-   * Returns the window associated with the root element (accessible through {@link #getRoot()}) of
-   * the view.
+   * Returns the window of the root node (initialized by {@link #initRoot()} of the view.
    *
-   * @return the window hosting the view
-   * @throws IllegalStateException if this is method is called before {@link #load()} has been
-   *     called
+   * @return the window hosting the root node
    */
   protected Window getWindow() {
-    assertViewLoaded();
     return root.getScene().getWindow();
+  }
+
+  /**
+   * Returns the model instance associated with the view. This method is meant for view-internal use
+   * only.
+   *
+   * @return the model of the view, never {@code null}
+   */
+  protected final ModelType model() {
+    return model;
+  }
+
+  /**
+   * Returns the controller instance associated with the view. This method is meant for
+   * view-internal use only.
+   *
+   * @return the controller of the view, never {@code null}
+   */
+  protected final ControllerType controller() {
+    return controller;
+  }
+
+  /**
+   * Returns the resource bundle associated with the view. This method is meant for view-internal
+   * use only.
+   *
+   * @return the resource bundle of the view, never {@code null}
+   */
+  protected final ResourceBundle resources() {
+    return resources;
   }
 
   /**
@@ -165,7 +192,7 @@ public abstract class View<ModelType, ControllerType extends Controller> {
    * @throws java.util.MissingResourceException if no string for the given key can be found
    * @see #getString(String, Object...)
    */
-  protected String getString(String key) {
+  protected final String getString(String key) {
     return resources.getString(key);
   }
 
@@ -183,41 +210,10 @@ public abstract class View<ModelType, ControllerType extends Controller> {
    * @throws java.util.MissingResourceException if no string for the given key can be found
    * @see #getString(String)
    */
-  protected String getString(String key, Object... arguments) {
+  protected final String getString(String key, Object... arguments) {
     if (arguments == null || arguments.length == 0) {
       return getString(key);
     }
     return MessageFormat.format(getString(key), arguments);
-  }
-
-  /**
-   * Returns the model instance associated with the view. This method is meant for view-internal use
-   * only.
-   *
-   * @return the model of the view
-   */
-  protected ModelType getModel() {
-    return model;
-  }
-
-  /**
-   * Returns the controller instance associated with the view. This method is meant for
-   * view-internal use only.
-   *
-   * @return the controller of the view
-   */
-  protected ControllerType getController() {
-    return controller;
-  }
-
-  public boolean isLoaded() {
-    return root != null;
-  }
-
-  private void assertViewLoaded() {
-    if (!isLoaded()) {
-      throw new IllegalStateException(
-          "View has not been loaded yet (Did you call load() in the view constructor?)");
-    }
   }
 }

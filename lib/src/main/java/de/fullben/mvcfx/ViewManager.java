@@ -211,4 +211,25 @@ public final class ViewManager {
       alertRegistry.removeIf(alertReference -> alertReference.get() == null);
     }
   }
+
+  static Stage finalizeStage(Stage stage, Parent root) {
+    requireNonNull(stage);
+    requireNonNull(root);
+    if (!stage.getScene().getRoot().equals(root)) {
+      throw new IllegalStateException("The stage does not host the given root");
+    }
+    stage.initModality(Modality.WINDOW_MODAL);
+    stage.initOwner(findVisibleWindow());
+    stage.hide();
+    return stage;
+  }
+
+  private static Window findVisibleWindow() {
+    for (Window window : Stage.getWindows()) {
+      if (window.isShowing()) {
+        return window;
+      }
+    }
+    return null;
+  }
 }
