@@ -116,7 +116,7 @@ public abstract class FxmlView<ModelType, ControllerType extends Controller>
     final FXMLLoader loader = new FXMLLoader();
     loader.setController(this);
     loader.setLocation(findFxmlResource());
-    loader.setResources(resources());
+    loader.setResources(getResources());
     return loader.load();
   }
 

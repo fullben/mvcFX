@@ -157,7 +157,7 @@ public abstract class View<ModelType, ControllerType extends Controller> {
    *
    * @return the model of the view, never {@code null}
    */
-  protected final ModelType model() {
+  protected final ModelType getModel() {
     return model;
   }
 
@@ -167,7 +167,7 @@ public abstract class View<ModelType, ControllerType extends Controller> {
    *
    * @return the controller of the view, never {@code null}
    */
-  protected final ControllerType controller() {
+  protected final ControllerType getController() {
     return controller;
   }
 
@@ -177,7 +177,7 @@ public abstract class View<ModelType, ControllerType extends Controller> {
    *
    * @return the resource bundle of the view, never {@code null}
    */
-  protected final ResourceBundle resources() {
+  protected final ResourceBundle getResources() {
     return resources;
   }
 
