@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -55,16 +56,18 @@ public final class Dialogs {
   }
 
   /**
-   * Shows a file chooser configured with the given values.
+   * Shows a file chooser for opening a file, configured with the given values.
    *
    * @param title the title of the chooser dialog
    * @param initDir the initial directory of the chooser, or {@code null} for the default
    * @param extensionFilter the type of file (by extension) which can be chosen with the chooser
    * @param owner the owning window
    * @return the file selected by the user or {@code null} if no file was selected
+   * @see #openMultipleFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #saveFileChooser(String, Path, ExtensionFilter, Window)
    * @see #fileChooser()
    */
-  public static Path fileChooser(
+  public static Path openFileChooser(
       String title, Path initDir, ExtensionFilter extensionFilter, Window owner) {
     FileChooser fileChooser = new FileChooser();
     fileChooser.setTitle(title);
@@ -72,15 +75,68 @@ public final class Dialogs {
     if (initDir != null) {
       fileChooser.setInitialDirectory(initDir.toFile());
     }
-    File f = fileChooser.showOpenDialog(owner);
-    return f != null ? f.toPath() : null;
+    File file = fileChooser.showOpenDialog(owner);
+    return file != null ? file.toPath() : null;
+  }
+
+  /**
+   * Shows a file chooser for opening multiple files, configured with the given values.
+   *
+   * @param title the title of the chooser dialog
+   * @param initDir the initial directory of the chooser, or {@code null} for the default
+   * @param extensionFilter the type of file (by extension) which can be chosen with the chooser
+   * @param owner the owning window
+   * @return the files selected by the user or {@code null} if no file was selected
+   * @see #openFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #saveFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #fileChooser()
+   */
+  public static List<Path> openMultipleFileChooser(
+      String title, Path initDir, ExtensionFilter extensionFilter, Window owner) {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle(title);
+    fileChooser.setSelectedExtensionFilter(extensionFilter);
+    if (initDir != null) {
+      fileChooser.setInitialDirectory(initDir.toFile());
+    }
+    List<File> files = fileChooser.showOpenMultipleDialog(owner);
+    if (files == null) {
+      return null;
+    }
+    return files.stream().map(File::toPath).collect(Collectors.toList());
+  }
+
+  /**
+   * Shows a file chooser for saving to a file, configured with the given values.
+   *
+   * @param title the title of the chooser dialog
+   * @param initDir the initial directory of the chooser, or {@code null} for the default
+   * @param extensionFilter the type of file (by extension) which can be chosen with the chooser
+   * @param owner the owning window
+   * @return the file selected by the user or {@code null} if no file was selected
+   * @see #openFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #openMultipleFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #fileChooser()
+   */
+  public static Path saveFileChooser(
+      String title, Path initDir, ExtensionFilter extensionFilter, Window owner) {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle(title);
+    fileChooser.setSelectedExtensionFilter(extensionFilter);
+    if (initDir != null) {
+      fileChooser.setInitialDirectory(initDir.toFile());
+    }
+    File file = fileChooser.showSaveDialog(owner);
+    return file != null ? file.toPath() : null;
   }
 
   /**
    * Returns a builder for a file chooser.
    *
    * @return the builder for the file chooser
-   * @see #fileChooser(String, Path, ExtensionFilter, Window)
+   * @see #openFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #openMultipleFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #saveFileChooser(String, Path, ExtensionFilter, Window)
    */
   public static FileChooserBuilder fileChooser() {
     return new FileChooserBuilder();
