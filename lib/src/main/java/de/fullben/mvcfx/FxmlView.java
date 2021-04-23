@@ -47,9 +47,9 @@ import javafx.stage.Window;
  *   ...
  * </pre>
  *
- * Note that the view expects to find the {@code fxml} source in a resource file found in the {@link
- * #FXML_DIR} directory. The name of the file must be equal to the simple class name of the view
- * class.
+ * <p>Note that the view expects to find the {@code fxml} file in the views resource directory
+ * ({@link #FXML_DIR}) or in the same package as the view class. The name of the file must be equal
+ * to the simple class name of the view class.
  *
  * @see View
  * @see StageView
@@ -63,7 +63,6 @@ public abstract class FxmlView<ModelType, ControllerType extends Controller>
 
   private static final String FXML_DIR = "/views/";
   private static final String FXML_EXTENSION = ".fxml";
-  private final URL fxmlUrl;
 
   /**
    * Creates a new view with the given resources. Users of this constructor must ensure that {@link
@@ -76,7 +75,6 @@ public abstract class FxmlView<ModelType, ControllerType extends Controller>
    */
   public FxmlView(ModelType model, ControllerType controller, ResourceBundle resources) {
     super(model, controller, resources, false);
-    fxmlUrl = FxmlView.class.getResource(FXML_DIR + getClass().getSimpleName() + FXML_EXTENSION);
   }
 
   /**
@@ -117,9 +115,25 @@ public abstract class FxmlView<ModelType, ControllerType extends Controller>
     }
     final FXMLLoader loader = new FXMLLoader();
     loader.setController(this);
-    loader.setLocation(fxmlUrl);
+    loader.setLocation(findFxmlResource());
     loader.setResources(resources());
     return loader.load();
+  }
+
+  private URL findFxmlResource() {
+    // Fxml file in fxml views directory
+    String filename = FXML_DIR + getClass().getSimpleName() + FXML_EXTENSION;
+    URL fxml = getClass().getResource(filename);
+    if (fxml != null) {
+      return fxml;
+    }
+    // Fxml file in same package as views class
+    filename = "/" + getClass().getName().replace(".", "/") + FXML_EXTENSION;
+    fxml = getClass().getResource(filename);
+    if (fxml != null) {
+      return fxml;
+    }
+    throw new IllegalStateException("Cannot find FXML view file");
   }
 
   /**

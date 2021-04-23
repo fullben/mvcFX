@@ -40,6 +40,10 @@ import javafx.stage.Stage;
  * This class is an extension of the {@link FxmlView} class that adds functionality for defining and
  * managing a user interface window which hosts the user interface nodes of this view.
  *
+ * <p>Note that the view expects to find the {@code fxml} file in the views resource directory (see
+ * {@link FxmlView}) or in the same package as the view class. The name of the file must be equal to
+ * the simple class name of the view class.
+ *
  * @see View
  * @see StageView
  * @see FxmlView
