@@ -212,7 +212,7 @@ public final class ViewManager {
     }
   }
 
-  static Stage finalizeStage(Stage stage, Parent root) {
+  static Stage primeStage(Stage stage, Parent root) {
     requireNonNull(stage);
     requireNonNull(root);
     if (!stage.getScene().getRoot().equals(root)) {

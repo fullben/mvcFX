@@ -72,7 +72,7 @@ public abstract class StageView<ModelType, ControllerType extends Controller>
    */
   public StageView(ModelType model, ControllerType controller, ResourceBundle resources) {
     super(model, controller, resources);
-    stage = ViewManager.finalizeStage(initStage(getRoot()), getRoot());
+    stage = ViewManager.primeStage(initStage(getRoot()), getRoot());
     ViewManager.get().register(this);
   }
 

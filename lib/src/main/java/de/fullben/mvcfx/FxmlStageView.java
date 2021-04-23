@@ -114,7 +114,7 @@ public abstract class FxmlStageView<ModelType, ControllerType extends Controller
   protected final void load() throws IOException {
     Parent root = loadFxml();
     setRoot(root);
-    stage = ViewManager.finalizeStage(initStage(root), root);
+    stage = ViewManager.primeStage(initStage(root), root);
     ViewManager.get().register(this);
   }
 
