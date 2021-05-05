@@ -7,7 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 
 /**
- * Can be used to represent themes that override an existing theme.
+ * Can be used to represent themes that override (modify) an existing theme.
  *
  * @see UserAgentStylesheetTheme
  * @author Benedikt Full

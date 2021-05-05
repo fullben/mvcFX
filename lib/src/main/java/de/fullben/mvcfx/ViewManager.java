@@ -24,7 +24,8 @@ import javafx.stage.Window;
  * application-wide changes, such as setting a theme.
  *
  * <p>Note that only view components initialized via framework utilities (so either by using {@link
- * View}, {@link StageView} or {@link Dialogs}) will be registered with the {@code ViewManager}.
+ * View} and any of its extensions or {@link Dialogs}) will be registered with the {@code
+ * ViewManager}.
  *
  * @author Benedikt Full
  */
