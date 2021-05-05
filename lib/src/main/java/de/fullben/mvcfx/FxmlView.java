@@ -133,7 +133,8 @@ public abstract class FxmlView<ModelType, ControllerType extends Controller>
     if (fxml != null) {
       return fxml;
     }
-    throw new IllegalStateException("Cannot find FXML view file");
+    throw new IllegalStateException(
+        "Cannot find FXML view file with name: " + getClass().getSimpleName() + FXML_EXTENSION);
   }
 
   /**
