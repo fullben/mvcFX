@@ -74,7 +74,22 @@ public abstract class FxmlView<ModelType, ControllerType extends Controller>
    * @param resources the resource bundle to be utilized by this view
    */
   public FxmlView(ModelType model, ControllerType controller, ResourceBundle resources) {
-    super(model, controller, resources, false);
+    this(model, true, controller, resources);
+  }
+
+  /**
+   * Constructor for internal usage. Can be used to create a {@code FxmlView} that has a {@code
+   * null} model.
+   *
+   * @param model the model associated with this view, or {@code null}
+   * @param nonNullModel {@code true} if the constructor should accept {@code null} for the model,
+   *     {@code false} if an actual object is required
+   * @param controller the controller of this view
+   * @param resources the resource bundle to be utilized by this view
+   */
+  FxmlView(
+      ModelType model, boolean nonNullModel, ControllerType controller, ResourceBundle resources) {
+    super(model, nonNullModel, controller, resources, false);
   }
 
   /**

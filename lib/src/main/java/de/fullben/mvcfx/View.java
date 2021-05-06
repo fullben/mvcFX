@@ -55,26 +55,33 @@ public abstract class View<ModelType, ControllerType extends Controller> {
    * @param resources the resource bundle to be utilized by this view
    */
   public View(ModelType model, ControllerType controller, ResourceBundle resources) {
-    this(model, controller, resources, true);
+    this(model, true, controller, resources, true);
   }
 
   /**
    * Constructor for internal usage. Can be used to create a {@code View} that has an uninitialized
-   * root.
+   * root or a {@code null} model.
    *
    * <p>If the constructor is called with {@code false} for {@code initRoot}, it becomes the
    * caller's responsibility to ensure that the root element of the view is initialized and that the
    * view is registered with the {@link ViewManager}.
    *
-   * @param model the model associated with this view
+   * @param model the model associated with this view, or {@code null}
+   * @param nonNullModel {@code true} if the constructor should accept {@code null} for the model,
+   *     {@code false} if an actual object is required
    * @param controller the controller of this view
    * @param resources the resource bundle to be utilized by this view
    * @param initRoot {@code true} if the user interface elements represented by this instance should
    *     be initialized by calling {@link #initRoot()}, {@code false} if the root should remain
    *     uninitialized
    */
-  View(ModelType model, ControllerType controller, ResourceBundle resources, boolean initRoot) {
-    this.model = requireNonNull(model);
+  View(
+      ModelType model,
+      boolean nonNullModel,
+      ControllerType controller,
+      ResourceBundle resources,
+      boolean initRoot) {
+    this.model = nonNullModel ? requireNonNull(model) : model;
     this.controller = requireNonNull(controller);
     this.resources = requireNonNull(resources);
     if (initRoot) {
@@ -157,7 +164,7 @@ public abstract class View<ModelType, ControllerType extends Controller> {
    *
    * @return the model of the view, never {@code null}
    */
-  protected final ModelType getModel() {
+  protected ModelType getModel() {
     return model;
   }
 

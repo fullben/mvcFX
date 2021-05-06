@@ -5,7 +5,7 @@ import javafx.scene.Parent;
 import javafx.stage.Stage;
 
 /**
- * Base class for all views which manage JavaFX user interface components that is meant to be
+ * Base class for all views which manage JavaFX user interface components that are meant to be
  * displayed in their own window.
  *
  * <p>In order to build the user interface represented by an instance, any implementing views must
@@ -71,7 +71,22 @@ public abstract class StageView<ModelType, ControllerType extends Controller>
    * @param resources the resource bundle to be utilized by this view
    */
   public StageView(ModelType model, ControllerType controller, ResourceBundle resources) {
-    super(model, controller, resources);
+    this(model, true, controller, resources);
+  }
+
+  /**
+   * Constructor for internal usage. Can be used to create a {@code View} that has a {@code null}
+   * model.
+   *
+   * @param model the model associated with this view, or {@code null}
+   * @param nonNullModel {@code true} if the constructor should accept {@code null} for the model,
+   *     {@code false} if an actual object is required
+   * @param controller the controller of this view
+   * @param resources the resource bundle to be utilized by this view
+   */
+  StageView(
+      ModelType model, boolean nonNullModel, ControllerType controller, ResourceBundle resources) {
+    super(model, nonNullModel, controller, resources, true);
     stage = ViewManager.primeStage(initStage(getRoot()), getRoot());
     ViewManager.get().register(this);
   }

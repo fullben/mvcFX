@@ -65,7 +65,22 @@ public abstract class FxmlStageView<ModelType, ControllerType extends Controller
    * @param resources the resource bundle to be utilized by this view
    */
   public FxmlStageView(ModelType model, ControllerType controller, ResourceBundle resources) {
-    super(model, controller, resources);
+    this(model, true, controller, resources);
+  }
+
+  /**
+   * Constructor for internal usage. Can be used to create a {@code FxmlStageView} that has a {@code
+   * null} model.
+   *
+   * @param model the model associated with this view, or {@code null}
+   * @param nonNullModel {@code true} if the constructor should accept {@code null} for the model,
+   *     {@code false} if an actual object is required
+   * @param controller the controller of this view
+   * @param resources the resource bundle to be utilized by this view
+   */
+  FxmlStageView(
+      ModelType model, boolean nonNullModel, ControllerType controller, ResourceBundle resources) {
+    super(model, nonNullModel, controller, resources);
     stage = null;
   }
 
