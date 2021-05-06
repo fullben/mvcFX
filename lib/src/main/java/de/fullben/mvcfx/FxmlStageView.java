@@ -113,8 +113,8 @@ public abstract class FxmlStageView<ModelType, ControllerType extends Controller
 
   /**
    * Loads the view from the {@code fxml} file and injects all relevant member fields before
-   * registering the view with the view manager. This is followed by initializing the the stage of
-   * the view, as defined by {@link #initStage(Parent)}.
+   * registering the view with the application's {@link ViewManager}. This is followed by
+   * initializing the the stage of the view, as defined by {@link #initStage(Parent)}.
    *
    * <p>Note that this method ensures that the stage
    *

@@ -104,7 +104,7 @@ public abstract class FxmlView<ModelType, ControllerType extends Controller>
 
   /**
    * Loads the view from the {@code fxml} file and injects all relevant member fields before
-   * registering the view with the view manager.
+   * registering the view with the application's {@link ViewManager}.
    *
    * <p>This method should be called by the constructor of any extending class.
    *

@@ -65,8 +65,8 @@ public abstract class OperatingSystem {
   /**
    * Returns the name of the hosting operating system.
    *
-   * @return the name of the hosting operating system, which will be the same as the value returned
-   *     by {@code System.getProperty("os.name")}
+   * @return the name of the hosting operating system, equal to the value returned by {@code
+   *     System.getProperty("os.name")}
    */
   public String getName() {
     return name;
