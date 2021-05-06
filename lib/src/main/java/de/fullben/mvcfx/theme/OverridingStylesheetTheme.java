@@ -1,5 +1,7 @@
 package de.fullben.mvcfx.theme;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.List;
 import java.util.Objects;
 import javafx.scene.Parent;
@@ -7,7 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 
 /**
- * Can be used to represent themes that override (modify) an existing theme.
+ * Can be used to represent a theme that overrides (modifies) an existing theme.
  *
  * @see UserAgentStylesheetTheme
  * @author Benedikt Full
@@ -15,68 +17,42 @@ import javafx.scene.control.Alert;
 public class OverridingStylesheetTheme implements Theme {
 
   private final String stylesheet;
+  private final Theme baseTheme;
 
   /**
-   * Creates a new overriding theme.
+   * Creates a new overriding theme, modifying the given {@code baseTheme}.
    *
    * @param stylesheet the resource which defines the overrides of this theme
+   * @param baseTheme the theme that will be overridden by the stylesheet, must not {@code null} or
+   *     an instance of this class
    */
-  public OverridingStylesheetTheme(String stylesheet) {
-    this.stylesheet = stylesheet;
+  public OverridingStylesheetTheme(String stylesheet, Theme baseTheme) {
+    this.stylesheet = requireNonNull(stylesheet);
+    this.baseTheme = requireNotOverridingStyleSheetTheme(requireNonNull(baseTheme));
   }
 
   @Override
   public void applyTo(Scene scene) {
     List<String> stylesheets = scene.getStylesheets();
-    if (stylesheets.contains(stylesheet)) {
-      return;
-    }
+    stylesheets.clear();
+    baseTheme.applyTo(scene);
     stylesheets.add(stylesheet);
   }
 
   @Override
   public void applyTo(Parent parent) {
     List<String> stylesheets = parent.getStylesheets();
-    if (stylesheets.contains(stylesheet)) {
-      return;
-    }
+    stylesheets.clear();
+    baseTheme.applyTo(parent);
     stylesheets.add(stylesheet);
   }
 
   @Override
   public void applyTo(Alert alert) {
     List<String> stylesheets = alert.getDialogPane().getStylesheets();
-    if (stylesheets.contains(stylesheet)) {
-      return;
-    }
+    stylesheets.clear();
+    baseTheme.applyTo(alert);
     stylesheets.add(stylesheet);
-  }
-
-  /**
-   * Removes the stylesheet of this theme from the given scene.
-   *
-   * @param scene a scene , must be non-{@code null}
-   */
-  public void removeFrom(Scene scene) {
-    scene.getStylesheets().remove(stylesheet);
-  }
-
-  /**
-   * Removes the stylesheet of this theme from the given parent.
-   *
-   * @param parent a parent , must be non-{@code null}
-   */
-  public void removeFrom(Parent parent) {
-    parent.getStylesheets().remove(stylesheet);
-  }
-
-  /**
-   * Removes the stylesheet of this theme from the given alert.
-   *
-   * @param alert an alert , must be non-{@code null}
-   */
-  public void removeFrom(Alert alert) {
-    alert.getDialogPane().getStylesheets().remove(stylesheet);
   }
 
   @Override
@@ -94,5 +70,13 @@ public class OverridingStylesheetTheme implements Theme {
   @Override
   public int hashCode() {
     return Objects.hashCode(stylesheet);
+  }
+
+  private static Theme requireNotOverridingStyleSheetTheme(Theme theme) {
+    if (theme instanceof OverridingStylesheetTheme) {
+      throw new IllegalArgumentException(
+          "Theme must not be an " + OverridingStylesheetTheme.class.getSimpleName());
+    }
+    return theme;
   }
 }

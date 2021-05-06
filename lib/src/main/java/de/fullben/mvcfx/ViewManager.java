@@ -2,7 +2,6 @@ package de.fullben.mvcfx;
 
 import static java.util.Objects.requireNonNull;
 
-import de.fullben.mvcfx.theme.OverridingStylesheetTheme;
 import de.fullben.mvcfx.theme.PlatformDefaultTheme;
 import de.fullben.mvcfx.theme.Theme;
 import java.lang.ref.WeakReference;
@@ -62,55 +61,15 @@ public final class ViewManager {
   }
 
   /**
-   * Applies the given overriding theme to the views registered with this manager. Before applying
-   * the theme, this method ensures that the views' current theme is equal to the given {@code
-   * baseTheme}.
-   *
-   * @param theme the new theme, must not be {@code null}
-   * @param baseTheme the base theme which will be overridden by the changes defined in the given
-   *     {@code theme}, must not be {@code null}
-   * @see #setTheme(Theme)
-   */
-  public void setTheme(OverridingStylesheetTheme theme, Theme baseTheme) {
-    requireNonNull(theme);
-    requireNonNull(baseTheme);
-    if (this.theme.equals(theme)) {
-      return;
-    }
-    if (this.theme.equals(baseTheme)) {
-      this.theme = theme;
-      forEachRegisteredView(this::applyTheme);
-      forEachRegisteredAlert(this::applyTheme);
-    } else {
-      forEachRegisteredView(
-          view -> {
-            applyTheme(view, baseTheme);
-            applyTheme(view, theme);
-          });
-      forEachRegisteredAlert(
-          alert -> {
-            applyTheme(alert, baseTheme);
-            applyTheme(alert, theme);
-          });
-      this.theme = theme;
-    }
-  }
-
-  /**
    * Applies the given theme to the views registered with this manager.
    *
    * @param theme the new theme, must not be {@code null}
-   * @see #setTheme(OverridingStylesheetTheme, Theme)
    */
   public void setTheme(Theme theme) {
     requireNonNull(theme, "Theme must not be null");
     if (this.theme.equals(theme)) {
       // If given theme equals current theme, do nothing
       return;
-    }
-    if (this.theme instanceof OverridingStylesheetTheme) {
-      forEachRegisteredView(this::removeOverridingTheme);
-      forEachRegisteredAlert(this::removeOverridingTheme);
     }
     this.theme = theme;
     forEachRegisteredView(this::applyTheme);
@@ -183,25 +142,6 @@ public final class ViewManager {
 
   private void applyTheme(Alert alert) {
     applyTheme(alert, theme);
-  }
-
-  private void removeOverridingTheme(View<?, ?> view) {
-    if (!(theme instanceof OverridingStylesheetTheme)) {
-      return;
-    }
-    OverridingStylesheetTheme currentTheme = (OverridingStylesheetTheme) theme;
-    if (view instanceof StageView) {
-      currentTheme.removeFrom(view.getScene());
-    } else {
-      currentTheme.removeFrom(view.getRoot());
-    }
-  }
-
-  private void removeOverridingTheme(Alert alert) {
-    if (!(theme instanceof OverridingStylesheetTheme)) {
-      return;
-    }
-    ((OverridingStylesheetTheme) theme).removeFrom(alert);
   }
 
   private void cleanUpRegistries() {
