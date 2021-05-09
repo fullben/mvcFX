@@ -44,7 +44,17 @@ public final class ScopeManager {
     if (currentThreadIsFxApplicationThread()) {
       publish(messageName, payload, observers);
     } else {
-      Platform.runLater(() -> publish(messageName, payload, observers));
+      try {
+        Platform.runLater(() -> publish(messageName, payload, observers));
+      } catch (IllegalStateException e) {
+        if (e.getMessage().equals("Toolkit not initialized")) {
+          // This means we're probably in a test, so there is no FX toolkit and no need to run the
+          // publishing on the JavaFX application thread
+          publish(messageName, payload, observers);
+        } else {
+          throw e;
+        }
+      }
     }
   }
 
