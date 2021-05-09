@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'de.fullben.mvcfx'
-version '0.1.0'
+version '0.1.0-SNAPSHOT'
 ext.moduleName = 'mvcfx.main'
 
 java {
