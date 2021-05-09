@@ -51,7 +51,7 @@ import java.util.ResourceBundle;
  * @param <ControllerType> the type of the controller of this view
  * @author Benedikt Full
  */
-public class StatelessFxmlView<ControllerType extends Controller>
+public abstract class StatelessFxmlView<ControllerType extends Controller>
     extends FxmlView<Void, ControllerType> {
 
   /**
