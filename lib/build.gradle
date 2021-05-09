@@ -9,6 +9,25 @@ ext.moduleName = 'mvcfx.main'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
+    withJavadocJar()
+    withSourcesJar()
+}
+
+jar {
+    baseName rootProject.name.toLowerCase()
+}
+
+sourcesJar {
+    baseName rootProject.name.toLowerCase()
+}
+
+javadocJar {
+    baseName rootProject.name.toLowerCase()
+}
+
+javafx {
+    version = '15.0.1'
+    modules = ['javafx.controls', 'javafx.fxml']
 }
 
 repositories {
@@ -18,11 +37,6 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-}
-
-javafx {
-    version = '12'
-    modules = ['javafx.controls', 'javafx.fxml']
 }
 
 tasks.named('test') {
