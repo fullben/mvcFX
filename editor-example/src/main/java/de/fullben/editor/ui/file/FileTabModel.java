@@ -1,6 +1,6 @@
 package de.fullben.editor.ui.file;
 
-import de.fullben.editor.FileHandler;
+import de.fullben.editor.model.FileHandler;
 import java.io.IOException;
 import java.nio.file.Path;
 import javafx.beans.property.ReadOnlyObjectProperty;

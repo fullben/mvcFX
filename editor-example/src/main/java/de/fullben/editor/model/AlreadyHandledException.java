@@ -1,4 +1,4 @@
-package de.fullben.editor;
+package de.fullben.editor.model;
 
 /**
  * Indicates that a specific file is already handled by a known {@link FileHandler}.

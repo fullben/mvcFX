@@ -1,6 +1,6 @@
 package de.fullben.editor.ui.main;
 
-import de.fullben.editor.AlreadyHandledException;
+import de.fullben.editor.model.AlreadyHandledException;
 import de.fullben.editor.ui.I18n;
 import de.fullben.editor.ui.about.AboutController;
 import de.fullben.editor.ui.file.FileTabController;

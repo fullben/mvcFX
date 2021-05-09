@@ -1,4 +1,4 @@
-package de.fullben.editor;
+package de.fullben.editor.model;
 
 import java.nio.file.Path;
 import java.util.ArrayList;

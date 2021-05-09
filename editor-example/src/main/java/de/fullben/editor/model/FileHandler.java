@@ -1,4 +1,4 @@
-package de.fullben.editor;
+package de.fullben.editor.model;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

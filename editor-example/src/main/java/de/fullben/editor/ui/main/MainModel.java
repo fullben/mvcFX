@@ -1,9 +1,9 @@
 package de.fullben.editor.ui.main;
 
-import de.fullben.editor.AlreadyHandledException;
-import de.fullben.editor.FileHandler;
-import de.fullben.editor.FileManager;
 import de.fullben.editor.Preferences;
+import de.fullben.editor.model.AlreadyHandledException;
+import de.fullben.editor.model.FileHandler;
+import de.fullben.editor.model.FileManager;
 import de.fullben.editor.ui.file.FileTabModel;
 import java.io.IOException;
 import java.nio.file.Path;

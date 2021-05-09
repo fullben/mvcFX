@@ -1,7 +1,7 @@
 package de.fullben.editor.ui;
 
-import de.fullben.editor.FileManager;
 import de.fullben.editor.Preferences;
+import de.fullben.editor.model.FileManager;
 import de.fullben.editor.ui.main.MainController;
 import de.fullben.editor.ui.main.MainModel;
 import javafx.application.Application;
