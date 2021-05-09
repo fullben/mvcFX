@@ -1,35 +1,37 @@
 package de.fullben.mvcfx;
 
-import java.io.IOException;
 import java.util.ResourceBundle;
 import javafx.scene.Parent;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 
 /**
- * Base class for all views which manage a JavaFX user interface component loaded from an {@code
- * fxml} file that is meant to be displayed in its own window.
+ * Base class for all views which manage JavaFX user interface components that are meant to be
+ * displayed in their own window.
+ *
+ * <p>In order to build the user interface represented by an instance, any implementing views must
+ * override the {@link #initRoot()} and {@link #initStage(Parent)} methods. These methods are called
+ * automatically by the constructor of this class. The {@code Parent} returned by the {@code
+ * initRoot()} method will be provided as parameter to {@code initStage(Parent root)}.
  *
  * <pre>
  * public class MyView extends StageView&lt;MyModel, MyController&gt; {
  *     ...
- *     public MyView(MyModel model, MyController controller, ResourceBundle res) throws IOException {
- *       super(model, controller, res);
- *       load();
+ *     public MyView(MyModel m, MyController c, ResourceBundle r) {
+ *       super(m, c, r);
  *     }
  *
- *     &#064;FXML
- *     public void initialize() {
- *       // Your own initialization code here, called automatically after the constructor
- *       ...
+ *     &#064;Override
+ *     protected Parent initRoot() {
+ *       StackPane root = new StackPane();
+ *       Button btn = new Button(getString("btn.text"));
+ *       root.getChildren().add(btn);
+ *       return root;
  *     }
  *
- *     &#064;FXML
- *     public void configureStage(Parent root) {
- *       // Create and configure the stage represented by this view
+ *     &#064;Override
+ *     protected Stage initStage(Parent root) {
  *       Stage stage = new Stage();
- *       stage.setTitle(getString("stage.title");
+ *       stage.setTitle(getString("stage.title"));
  *       stage.setScene(new Scene(root));
  *       return stage;
  *     }
@@ -39,131 +41,105 @@ import javafx.stage.Window;
  * This class is an extension of the {@link View} class that adds functionality for defining and
  * managing a user interface window which hosts the user interface nodes of this view.
  *
- * @author Benedikt Full
- * @see Controller
+ * @see View
+ * @see FxmlView
+ * @see FxmlStageView
  * @param <ModelType> the type of the model of this controller
  * @param <ControllerType> the type of the controller of this view
+ * @author Benedikt Full
  */
 public abstract class StageView<ModelType, ControllerType extends Controller>
     extends View<ModelType, ControllerType> {
 
-  private Stage stage;
+  private final Stage stage;
 
   /**
-   * Creates a new stage view with the given resources. Callers of this constructor must also call
-   * {@link #load()}.
+   * Creates a new view with the given resources and calls {@link #initStage(Parent)} to initialize
+   * the window represented by this {@code StageView} instance.
+   *
+   * <p>Note that the constructor ensures that the window:
+   *
+   * <ul>
+   *   <li>hosts the root element defined by {@link #initRoot()},
+   *   <li>is hidden,
+   *   <li>is window modal (no events delivered to other windows of the same hierarchy),
+   *   <li>and is owned by one of the currently visible windows.
+   * </ul>
    *
    * @param model the model associated with this view
    * @param controller the controller of this view
    * @param resources the resource bundle to be utilized by this view
    */
   public StageView(ModelType model, ControllerType controller, ResourceBundle resources) {
-    super(model, controller, resources);
-    stage = null;
+    this(model, true, controller, resources);
   }
 
   /**
-   * Loads the view from the {@code fxml} file and injects all relevant member fields before
-   * registering the view with the view manager. This is followed by initializing the the stage of
-   * the view, as defined by {@link #configureStage(Parent)}.
+   * Constructor for internal usage. Can be used to create a {@code View} that has a {@code null}
+   * model.
    *
-   * <p>Note that this method ensures that the stage
-   *
-   * <ul>
-   *   <li>is hidden,
-   *   <li>window modal (no events delivered to other windows of the same hierarchy),
-   *   <li>and owned by one of the currently visible windows (see {@link #findVisibleWindow()}).
-   * </ul>
-   *
-   * @throws IOException if an error is encountered while attempting to read from the view file
-   * @throws IllegalStateException if the method is called more than once during the object's life
-   *     cycle
+   * @param model the model associated with this view, or {@code null}
+   * @param nonNullModel {@code true} if the constructor should accept {@code null} for the model,
+   *     {@code false} if an actual object is required
+   * @param controller the controller of this view
+   * @param resources the resource bundle to be utilized by this view
    */
-  @Override
-  protected void load() throws IOException {
-    if (stage != null) {
-      throw new IllegalStateException("Cannot load stage, has been loaded already");
-    }
-    loadWithoutRegister();
-    stage = configureStage(getRoot());
-    stage.initModality(Modality.WINDOW_MODAL);
-    stage.initOwner(findVisibleWindow());
-    // Ensure stage is not visible, even if configured to be so
-    stage.hide();
+  StageView(
+      ModelType model, boolean nonNullModel, ControllerType controller, ResourceBundle resources) {
+    super(model, nonNullModel, controller, resources, true);
+    stage = ViewManager.primeStage(initStage(getRoot()), getRoot());
     ViewManager.get().register(this);
   }
 
   /**
-   * Implementations of this method should create and configure a window which displays the user
-   * interface defined by the given {@code root}. The following snippet provides a basic example for
-   * an implementation of this method.
+   * Implementations must initialize the {@code Stage} which this view represents. This method is
+   * called automatically by the constructor of this class, with the return value of {@link
+   * #initRoot()} as parameter.
+   *
+   * <p>The following snippet shows an example implementation of this method which creates a simple
+   * user interface that contains a button.
    *
    * <pre>
-   * &#064;FXML
-   * public void configureStage(Parent root) {
-   *   Stage stage = new Stage();
-   *   stage.setTitle(getString("stage.title");
-   *   stage.setScene(new Scene(root));
-   *   return stage;
-   * }
+   *   &#064;Override
+   *   protected Stage initStage(Parent root) {
+   *     Stage stage = new Stage();
+   *     stage.setTitle(getString("stage.title"));
+   *     stage.setScene(new Scene(root));
+   *     return stage;
+   *   }
    * </pre>
    *
-   * <p>This method is called automatically after the view associated with this class has been
-   * loaded from the corresponding {@code fxml} file. The root element of the loaded view will be
-   * provided to this method as parameter {@code root}.
-   *
-   * @param root the root of the view loaded from {@code fxml}
-   * @return the new window of the view
-   * @see #load()
+   * @param root the root element of the view
+   * @return the window hosting the user interface elements represented by this view, must not be
+   *     {@code null}
    */
-  protected abstract Stage configureStage(Parent root);
+  protected abstract Stage initStage(Parent root);
 
+  /**
+   * Returns the window initialized by {@link #initStage(Parent)}.
+   *
+   * @return the {@code Stage} represented by this view
+   */
   @Override
-  protected Window getWindow() {
-    assertStageLoaded();
+  protected Stage getWindow() {
     return stage;
   }
 
   /**
    * Shows the stage of this view.
    *
-   * @throws IllegalStateException if the method is called before the stage has been initialized
    * @see #hide()
    */
-  public void show() {
-    assertStageLoaded();
+  public final void show() {
     stage.show();
   }
 
   /**
    * Hides the stage of this view.
    *
-   * @throws IllegalStateException if the method is called before the stage has been initialized
    * @see #show()
    */
-  public void hide() {
-    assertStageLoaded();
+  public final void hide() {
     stage.hide();
-  }
-
-  private void assertStageLoaded() {
-    if (stage == null) {
-      throw new IllegalStateException(
-          "Stage has not been loaded yet (Did you call load() in your view constructor?)");
-    }
-  }
-
-  /**
-   * @return the first application window where the {@link Window#isShowing()} method returns true
-   *     or {@code null} if there is no window satisfying this criteria
-   */
-  private static Window findVisibleWindow() {
-    // Use with care, getWindows() returns list of all windows that have had their show() called
-    for (Window window : Stage.getWindows()) {
-      if (window.isShowing()) {
-        return window;
-      }
-    }
-    return null;
   }
 }

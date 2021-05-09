@@ -2,7 +2,7 @@ package de.fullben.mvcfx;
 
 import static java.util.Objects.requireNonNull;
 
-import de.fullben.mvcfx.theme.OverridingStylesheetTheme;
+import de.fullben.mvcfx.theme.PlatformDefaultTheme;
 import de.fullben.mvcfx.theme.Theme;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -11,7 +11,11 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
+import javafx.scene.Parent;
 import javafx.scene.control.Alert;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /**
  * Each application has a {@code ViewManager} which keeps track of user interface components. The
@@ -19,7 +23,8 @@ import javafx.scene.control.Alert;
  * application-wide changes, such as setting a theme.
  *
  * <p>Note that only view components initialized via framework utilities (so either by using {@link
- * View}, {@link StageView} or {@link Dialogs}) will be registered with the {@code ViewManager}.
+ * View} and any of its extensions or {@link Dialogs}) will be registered with the {@code
+ * ViewManager}.
  *
  * @author Benedikt Full
  */
@@ -28,23 +33,22 @@ public final class ViewManager {
   private static final ViewManager VIEW_MANAGER = new ViewManager();
   private final List<WeakReference<View<?, ?>>> viewRegistry;
   private final List<WeakReference<Alert>> alertRegistry;
-  private final Timer cleanUpTimer;
   private Theme theme;
 
   private ViewManager() {
     viewRegistry = Collections.synchronizedList(new ArrayList<>());
     alertRegistry = Collections.synchronizedList(new ArrayList<>());
-    cleanUpTimer = new Timer(true);
-    cleanUpTimer.scheduleAtFixedRate(
-        new TimerTask() {
-          @Override
-          public void run() {
-            cleanUpRegistries();
-          }
-        },
-        30000,
-        30000);
-    theme = null;
+    new Timer(true)
+        .scheduleAtFixedRate(
+            new TimerTask() {
+              @Override
+              public void run() {
+                cleanUpRegistries();
+              }
+            },
+            30000,
+            30000);
+    theme = new PlatformDefaultTheme();
   }
 
   /**
@@ -63,13 +67,9 @@ public final class ViewManager {
    */
   public void setTheme(Theme theme) {
     requireNonNull(theme, "Theme must not be null");
-    if (this.theme != null && this.theme.equals(theme)) {
+    if (this.theme.equals(theme)) {
       // If given theme equals current theme, do nothing
       return;
-    }
-    if (this.theme instanceof OverridingStylesheetTheme) {
-      forEachRegisteredView(this::removeOverridingTheme);
-      forEachRegisteredAlert(this::removeOverridingTheme);
     }
     this.theme = theme;
     forEachRegisteredView(this::applyTheme);
@@ -124,10 +124,7 @@ public final class ViewManager {
     }
   }
 
-  private void applyTheme(View<?, ?> view) {
-    if (theme == null) {
-      return;
-    }
+  private void applyTheme(View<?, ?> view, Theme theme) {
     if (view instanceof StageView) {
       theme.applyTo(view.getScene());
     } else {
@@ -135,30 +132,16 @@ public final class ViewManager {
     }
   }
 
-  private void applyTheme(Alert alert) {
-    if (theme == null) {
-      return;
-    }
+  private void applyTheme(View<?, ?> view) {
+    applyTheme(view, theme);
+  }
+
+  private void applyTheme(Alert alert, Theme theme) {
     theme.applyTo(alert);
   }
 
-  private void removeOverridingTheme(View<?, ?> view) {
-    if (!(theme instanceof OverridingStylesheetTheme)) {
-      return;
-    }
-    OverridingStylesheetTheme currentTheme = (OverridingStylesheetTheme) theme;
-    if (view instanceof StageView) {
-      currentTheme.removeFrom(view.getScene());
-    } else {
-      currentTheme.removeFrom(view.getRoot());
-    }
-  }
-
-  private void removeOverridingTheme(Alert alert) {
-    if (!(theme instanceof OverridingStylesheetTheme)) {
-      return;
-    }
-    ((OverridingStylesheetTheme) theme).removeFrom(alert);
+  private void applyTheme(Alert alert) {
+    applyTheme(alert, theme);
   }
 
   private void cleanUpRegistries() {
@@ -168,5 +151,26 @@ public final class ViewManager {
     synchronized (alertRegistry) {
       alertRegistry.removeIf(alertReference -> alertReference.get() == null);
     }
+  }
+
+  static Stage primeStage(Stage stage, Parent root) {
+    requireNonNull(stage);
+    requireNonNull(root);
+    if (!stage.getScene().getRoot().equals(root)) {
+      throw new IllegalStateException("The stage does not host the given root");
+    }
+    stage.initModality(Modality.WINDOW_MODAL);
+    stage.initOwner(findVisibleWindow());
+    stage.hide();
+    return stage;
+  }
+
+  private static Window findVisibleWindow() {
+    for (Window window : Stage.getWindows()) {
+      if (window.isShowing()) {
+        return window;
+      }
+    }
+    return null;
   }
 }

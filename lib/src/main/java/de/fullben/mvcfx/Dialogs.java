@@ -2,7 +2,10 @@ package de.fullben.mvcfx;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -53,16 +56,18 @@ public final class Dialogs {
   }
 
   /**
-   * Shows a file chooser configured with the given values.
+   * Shows a file chooser for opening a file, configured with the given values.
    *
    * @param title the title of the chooser dialog
    * @param initDir the initial directory of the chooser, or {@code null} for the default
    * @param extensionFilter the type of file (by extension) which can be chosen with the chooser
    * @param owner the owning window
    * @return the file selected by the user or {@code null} if no file was selected
+   * @see #openMultipleFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #saveFileChooser(String, Path, ExtensionFilter, Window)
    * @see #fileChooser()
    */
-  public static Path fileChooser(
+  public static Path openFileChooser(
       String title, Path initDir, ExtensionFilter extensionFilter, Window owner) {
     FileChooser fileChooser = new FileChooser();
     fileChooser.setTitle(title);
@@ -70,15 +75,68 @@ public final class Dialogs {
     if (initDir != null) {
       fileChooser.setInitialDirectory(initDir.toFile());
     }
-    File f = fileChooser.showOpenDialog(owner);
-    return f != null ? f.toPath() : null;
+    File file = fileChooser.showOpenDialog(owner);
+    return file != null ? file.toPath() : null;
+  }
+
+  /**
+   * Shows a file chooser for opening multiple files, configured with the given values.
+   *
+   * @param title the title of the chooser dialog
+   * @param initDir the initial directory of the chooser, or {@code null} for the default
+   * @param extensionFilter the type of file (by extension) which can be chosen with the chooser
+   * @param owner the owning window
+   * @return the files selected by the user or {@code null} if no file was selected
+   * @see #openFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #saveFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #fileChooser()
+   */
+  public static List<Path> openMultipleFileChooser(
+      String title, Path initDir, ExtensionFilter extensionFilter, Window owner) {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle(title);
+    fileChooser.setSelectedExtensionFilter(extensionFilter);
+    if (initDir != null) {
+      fileChooser.setInitialDirectory(initDir.toFile());
+    }
+    List<File> files = fileChooser.showOpenMultipleDialog(owner);
+    if (files == null) {
+      return null;
+    }
+    return files.stream().map(File::toPath).collect(Collectors.toList());
+  }
+
+  /**
+   * Shows a file chooser for saving to a file, configured with the given values.
+   *
+   * @param title the title of the chooser dialog
+   * @param initDir the initial directory of the chooser, or {@code null} for the default
+   * @param extensionFilter the type of file (by extension) which can be chosen with the chooser
+   * @param owner the owning window
+   * @return the file selected by the user or {@code null} if no file was selected
+   * @see #openFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #openMultipleFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #fileChooser()
+   */
+  public static Path saveFileChooser(
+      String title, Path initDir, ExtensionFilter extensionFilter, Window owner) {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle(title);
+    fileChooser.setSelectedExtensionFilter(extensionFilter);
+    if (initDir != null) {
+      fileChooser.setInitialDirectory(initDir.toFile());
+    }
+    File file = fileChooser.showSaveDialog(owner);
+    return file != null ? file.toPath() : null;
   }
 
   /**
    * Returns a builder for a file chooser.
    *
    * @return the builder for the file chooser
-   * @see #fileChooser(String, Path, ExtensionFilter, Window)
+   * @see #openFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #openMultipleFileChooser(String, Path, ExtensionFilter, Window)
+   * @see #saveFileChooser(String, Path, ExtensionFilter, Window)
    */
   public static FileChooserBuilder fileChooser() {
     return new FileChooserBuilder();
@@ -416,9 +474,39 @@ public final class Dialogs {
      * @param extensionFilter the type of file (by extension) which can be chosen with the chooser
      *     resulting from this builder
      * @return the builder instance the method was called on
+     * @see #withExtensionFilter(String, String)
+     * @see #withExtensionFilter(String, String...)
      */
     public FileChooserBuilder withExtensionFilter(ExtensionFilter extensionFilter) {
       this.extensionFilter = extensionFilter;
+      return this;
+    }
+
+    /**
+     * Sets the filter for what type of file can be selected using the file chooser.
+     *
+     * @param description a description of the file type
+     * @param extension the extension of the file type
+     * @return the builder instance the method was called on
+     * @see #withExtensionFilter(ExtensionFilter)
+     * @see #withExtensionFilter(String, String...)
+     */
+    public FileChooserBuilder withExtensionFilter(String description, String extension) {
+      extensionFilter = new ExtensionFilter(description, extension);
+      return this;
+    }
+
+    /**
+     * Sets the filter for what type of file can be selected using the file chooser.
+     *
+     * @param description a description of the file type
+     * @param extension the extensions of the file type
+     * @return the builder instance the method was called on
+     * @see #withExtensionFilter(ExtensionFilter)
+     * @see #withExtensionFilter(String, String)
+     */
+    public FileChooserBuilder withExtensionFilter(String description, String... extension) {
+      extensionFilter = new ExtensionFilter(description, extension);
       return this;
     }
 
@@ -427,6 +515,8 @@ public final class Dialogs {
      *
      * @return the new file chooser
      * @see #showOpenDialog(Window)
+     * @see #showOpenMultipleDialog(Window)
+     * @see #showSaveDialog(Window)
      */
     public FileChooser build() {
       FileChooser fileChooser = new FileChooser();
@@ -439,13 +529,54 @@ public final class Dialogs {
     }
 
     /**
-     * Builds a file chooser dialog based on the state of this builder and shows it.
+     * Builds a file chooser dialog for selecting a single file based on the state of this builder
+     * and shows it.
      *
      * @param owner the owning window
      * @return the file chosen by the user or {@code null} if no file was chosen
+     * @see #build()
+     * @see #showOpenMultipleDialog(Window)
+     * @see #showSaveDialog(Window)
      */
     public Path showOpenDialog(Window owner) {
       File file = build().showOpenDialog(owner);
+      return file != null ? file.toPath() : null;
+    }
+
+    /**
+     * Builds a file chooser dialog for selecting multiple files based on the state of this builder
+     * and shows it.
+     *
+     * @param owner the owning window
+     * @return a list of the files chosen by the user or {@code null} if no file was chosen
+     * @see #build()
+     * @see #showOpenDialog(Window)
+     * @see #showSaveDialog(Window)
+     */
+    public List<Path> showOpenMultipleDialog(Window owner) {
+      List<File> files = build().showOpenMultipleDialog(owner);
+      if (files == null) {
+        return null;
+      }
+      List<Path> filePaths = new ArrayList<>(files.size());
+      for (File file : files) {
+        filePaths.add(file.toPath());
+      }
+      return filePaths;
+    }
+
+    /**
+     * Builds a file chooser dialog for selecting a file to save something to it based on the state
+     * of this builder and shows it.
+     *
+     * @param owner the owning window
+     * @return the file chosen by the user or {@code null} if no file was chosen
+     * @see #build()
+     * @see #showOpenDialog(Window)
+     * @see #showOpenMultipleDialog(Window)
+     */
+    public Path showSaveDialog(Window owner) {
+      File file = build().showSaveDialog(owner);
       return file != null ? file.toPath() : null;
     }
   }
