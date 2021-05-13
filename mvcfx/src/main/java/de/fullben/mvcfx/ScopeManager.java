@@ -1,8 +1,14 @@
 package de.fullben.mvcfx;
 
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.function.BiConsumer;
 import javafx.application.Platform;
 
@@ -19,10 +25,10 @@ import javafx.application.Platform;
 public final class ScopeManager {
 
   private static ScopeManager instance;
-  private final ScopeObserverRegistry observerRegistry;
+  private final ScopeObserverRegistry registry;
 
   private ScopeManager() {
-    observerRegistry = new ScopeObserverRegistry();
+    registry = new ScopeObserverRegistry();
   }
 
   static ScopeManager getInstance() {
@@ -36,12 +42,12 @@ public final class ScopeManager {
     return instance;
   }
 
-  public void publish(Scope scope, String messageName, Object... payload) {
-    ScopeObservers observers = observerRegistry.get(scope);
+  void publish(Scope scope, String messageName, Object... payload) {
+    final ScopeObservers observers = registry.get(scope);
     if (observers == null) {
       return;
     }
-    if (currentThreadIsFxApplicationThread()) {
+    if (isCurrentThreadFxApplicationThread()) {
       publish(messageName, payload, observers);
     } else {
       try {
@@ -58,20 +64,19 @@ public final class ScopeManager {
     }
   }
 
-  public boolean subscribe(Scope scope, String messageName, BiConsumer<String, Object[]> observer) {
-    ScopeObservers observers = observerRegistry.get(scope);
+  boolean subscribe(Scope scope, String messageName, BiConsumer<String, Object[]> observer) {
+    ScopeObservers observers = registry.get(scope);
     if (observers == null) {
       observers = new ScopeObservers();
-      observerRegistry.put(scope, observers);
+      registry.put(scope, observers);
     }
     Collection<BiConsumer<String, Object[]>> messageObservers =
         observers.computeIfAbsent(messageName, k -> new HashSet<>());
     return messageObservers.add(observer);
   }
 
-  public boolean unsubscribe(
-      Scope scope, String messageName, BiConsumer<String, Object[]> observer) {
-    ScopeObservers scopeObservers = observerRegistry.get(scope);
+  boolean unsubscribe(Scope scope, String messageName, BiConsumer<String, Object[]> observer) {
+    final ScopeObservers scopeObservers = registry.get(scope);
     if (scopeObservers == null || scopeObservers.isEmpty()) {
       return false;
     }
@@ -82,8 +87,8 @@ public final class ScopeManager {
     return messageObservers.remove(observer);
   }
 
-  public boolean unsubscribe(Scope scope, BiConsumer<String, Object[]> observer) {
-    ScopeObservers scopeObservers = observerRegistry.get(scope);
+  boolean unsubscribe(Scope scope, BiConsumer<String, Object[]> observer) {
+    final ScopeObservers scopeObservers = registry.get(scope);
     if (scopeObservers == null || scopeObservers.isEmpty()) {
       return false;
     }
@@ -97,7 +102,7 @@ public final class ScopeManager {
   }
 
   private static void publish(String messageName, Object[] payload, ScopeObservers observers) {
-    Collection<BiConsumer<String, Object[]>> subscribers = observers.get(messageName);
+    final Collection<BiConsumer<String, Object[]>> subscribers = observers.get(messageName);
     if (subscribers == null || subscribers.isEmpty()) {
       return;
     }
@@ -106,7 +111,7 @@ public final class ScopeManager {
     }
   }
 
-  private static boolean currentThreadIsFxApplicationThread() {
+  private static boolean isCurrentThreadFxApplicationThread() {
     try {
       return Platform.isFxApplicationThread();
     } catch (final RuntimeException e) {
@@ -120,8 +125,73 @@ public final class ScopeManager {
     }
   }
 
+  /**
+   * A convenience extension of a {@code HashMap} for storing a {@link Scope}'s message observers.
+   *
+   * @author Benedikt Full
+   */
   private static class ScopeObservers
       extends HashMap<String, Collection<BiConsumer<String, Object[]>>> {}
 
-  private static class ScopeObserverRegistry extends HashMap<Scope, ScopeObservers> {}
+  /**
+   * Manages a map that associates a {@link Scope} with {@link ScopeObservers ScopeObservers}.
+   *
+   * <p>The scopes (keys) are maintained as {@link WeakReference}s, which are periodically checked,
+   * and removed if they contain {@code null}. This ensures that a scope becomes eligible for
+   * garbage collection if it has become inaccessible from everywhere but the context of this
+   * registry.
+   *
+   * @author Benedikt Full
+   */
+  private static class ScopeObserverRegistry {
+
+    private final Map<WeakReference<Scope>, ScopeObservers> registry;
+
+    private ScopeObserverRegistry() {
+      this.registry = new HashMap<>();
+      Timer t = new Timer(true);
+      t.schedule(
+          new TimerTask() {
+            @Override
+            public void run() {
+              synchronized (registry) {
+                Set<WeakReference<Scope>> emptyKeys = new HashSet<>();
+                for (Entry<WeakReference<Scope>, ScopeObservers> entry : registry.entrySet()) {
+                  if (entry.getKey().get() == null) {
+                    emptyKeys.add(entry.getKey());
+                  }
+                }
+                for (WeakReference<Scope> emptyKey : emptyKeys) {
+                  registry.remove(emptyKey);
+                }
+              }
+            }
+          },
+          30000,
+          30000);
+    }
+
+    private ScopeObservers get(Scope scope) {
+      synchronized (registry) {
+        for (Entry<WeakReference<Scope>, ScopeObservers> entry : registry.entrySet()) {
+          if (scope.equals(entry.getKey().get())) {
+            return entry.getValue();
+          }
+        }
+        return null;
+      }
+    }
+
+    private void put(Scope scope, ScopeObservers observers) {
+      synchronized (registry) {
+        for (Entry<WeakReference<Scope>, ScopeObservers> entry : registry.entrySet()) {
+          if (scope.equals(entry.getKey().get())) {
+            registry.put(entry.getKey(), observers);
+            return;
+          }
+        }
+        registry.put(new WeakReference<>(scope), observers);
+      }
+    }
+  }
 }

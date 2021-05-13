@@ -10,6 +10,8 @@ import java.nio.file.Path;
  * application. It provides convenient access to certain operations on the host, such as opening a
  * file manager. The current host can be obtained from the {@link #hosting()} method.
  *
+ * <p>Alternatively, and for more operations, refer to the {@link java.awt.Desktop Desktop} API.
+ *
  * @author Benedikt Full
  */
 public abstract class OperatingSystem {
