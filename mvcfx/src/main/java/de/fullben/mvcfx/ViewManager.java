@@ -160,17 +160,23 @@ public final class ViewManager {
       throw new IllegalStateException("The stage does not host the given root");
     }
     stage.initModality(Modality.WINDOW_MODAL);
-    stage.initOwner(findVisibleWindow());
+    stage.initOwner(findSuitableOwner());
     stage.hide();
     return stage;
   }
 
-  private static Window findVisibleWindow() {
+  private static Window findSuitableOwner() {
+    List<Window> visibleWindows = new ArrayList<>();
     for (Window window : Stage.getWindows()) {
       if (window.isShowing()) {
+        visibleWindows.add(window);
+      }
+      if (window.isFocused()) {
+        // Should be top-most window, which should usually be the best owner candidate
         return window;
       }
     }
-    return null;
+    // If no window is focused, return the newest (?) visible window
+    return visibleWindows.get(visibleWindows.size() - 1);
   }
 }
