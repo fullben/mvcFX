@@ -15,11 +15,7 @@ Before downloading the project, you need to make sure that the following softwar
 
 ### Structure
 
-This project contains both the mvcFX library, and an example project. The library can be found in the `mvcfx` subproject, while the text editor example is implemented in the `mvcfx-example-editor` subproject.
-
-### Example Application
-
-The example is a very basic implementation of a text editor. For launching the editor, simply execute the main method of the `de.fullben.editor.Launcher` class.
+This project contains the mvcFX library code. The library can be found in the `mvcfx.lib` module.
 
 ## Features
 
