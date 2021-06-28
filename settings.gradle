@@ -1,3 +1,2 @@
-rootProject.name = 'mvcfx-parent'
-include('mvcfx')
-include('mvcfx-example-editor')
+rootProject.name = 'mvcFX'
+include('lib')
