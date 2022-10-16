@@ -114,23 +114,24 @@ public class MainView extends FxmlStageView<MainModel, MainController> {
 
   Path showSelectFileToOpenChooser() {
     return Dialogs.fileChooser()
-        .withTitle("Select File")
-        .withExtensionFilter("Text File", ".txt")
+        .withTitle(getString("main.select-file.title"))
+        .withExtensionFilter(
+            getString("main.select-file.description"), getString("main.select-file.extension"))
         .showOpenDialog(getWindow());
   }
 
   void showViewLoadErrorDialog() {
     Dialogs.errorAlert()
-        .withHeader("View Error")
-        .withContent("Something went wrong while trying to initialize a new view.")
+        .withHeader(getString("main.error.view.title"))
+        .withContent(getString("main.error.view.text"))
         .withOwner(getWindow())
         .showAndWait();
   }
 
   void showFileOpenErrorDialog() {
     Dialogs.errorAlert()
-        .withHeader("Cannot Open File")
-        .withContent("Something went wrong while trying to open a file.")
+        .withHeader(getString("main.error.open-file.title"))
+        .withContent(getString("main.error.open-file.text"))
         .withOwner(getWindow())
         .showAndWait();
   }
@@ -138,8 +139,8 @@ public class MainView extends FxmlStageView<MainModel, MainController> {
   boolean showConfirmUnsavedChangesDiscardDialog() {
     Optional<ButtonType> res =
         Dialogs.confirmationAlert()
-            .withHeader("Discard Unsaved Changes")
-            .withContent("Exit and discard unsaved changes?")
+            .withHeader(getString("main.confirm.discard.title"))
+            .withContent(getString("main.confirm.discard.text"))
             .withOwner(getWindow())
             .showAndWait();
     return res.isPresent() && res.get().equals(ButtonType.OK);
@@ -147,8 +148,8 @@ public class MainView extends FxmlStageView<MainModel, MainController> {
 
   void showFileAlreadyOpenErrorDialog() {
     Dialogs.errorAlert()
-        .withHeader("File Already Open")
-        .withContent("A file cannot be opened multiple times.")
+        .withHeader(getString("main.error.already-open-file.title"))
+        .withContent(getString("main.error.already-open-file.text"))
         .withOwner(getWindow())
         .showAndWait();
   }

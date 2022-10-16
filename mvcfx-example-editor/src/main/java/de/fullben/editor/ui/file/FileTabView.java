@@ -22,7 +22,6 @@ public class FileTabView extends FxmlView<FileTabModel, FileTabController> {
 
   @FXML
   private void initialize() {
-    // tab.textProperty().bind(getModel().nameProperty());
     taContents.textProperty().bindBidirectional(getModel().contentsProperty());
   }
 
@@ -31,25 +30,26 @@ public class FileTabView extends FxmlView<FileTabModel, FileTabController> {
     return super.getRoot();
   }
 
-  void showFileWriteErrorDialog() {
+  void showFileWriteErrorDialog(Path file) {
     Dialogs.errorAlert()
-        .withHeader("File Write Error")
-        .withContent("Something went wrong while trying to write to a file.")
+        .withHeader(getString("file.error.write.title"))
+        .withContent(getString("file.error.write.text", file.toAbsolutePath().toString()))
         .withOwner(getWindow())
         .showAndWait();
   }
 
   Path showSaveToFileChooserDialog() {
     return Dialogs.fileChooser()
-        .withTitle("Select File")
-        .withExtensionFilter("Text File", ".txt")
+        .withTitle(getString("file.select.title"))
+        .withExtensionFilter(
+            getString("file.select.description"), getString("file.select.extension"))
         .showSaveDialog(getWindow());
   }
 
   void showFileManagerErrorDialog() {
     Dialogs.errorAlert()
-        .withHeader("Uh Oh")
-        .withContent("Failed to open file manager of hosting operating system")
+        .withHeader(getString("file.error.file-manager.title"))
+        .withContent(getString("file.error.file-manager.text"))
         .withOwner(getWindow())
         .showAndWait();
   }

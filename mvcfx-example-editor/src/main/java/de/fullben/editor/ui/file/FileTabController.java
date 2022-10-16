@@ -31,7 +31,7 @@ public class FileTabController implements Controller {
     } catch (NoSuchFileException e) {
       return saveFileAs();
     } catch (IOException e) {
-      view.showFileWriteErrorDialog();
+      view.showFileWriteErrorDialog(model.getFile());
       return false;
     }
   }
@@ -45,7 +45,7 @@ public class FileTabController implements Controller {
       model.saveAs(file);
       return true;
     } catch (IOException e) {
-      view.showFileWriteErrorDialog();
+      view.showFileWriteErrorDialog(model.getFile());
       return false;
     }
   }

@@ -31,7 +31,7 @@ The library provides base classes for the *views* and an interface for implement
 
 - `View` and `FxmlView`: Views that represent some application component (not necessarily hosted by a dedicated window).
 - `StageView` and `FxmlStageView`: Views that represent some application component hosted by a dedicated window.
-- `StatelessXXXView`: Views that do not present any mutable state and thus require no model.
+- `StatelessXxxView`: Views that do not present any mutable state and thus require no model.
 - `Controller`: Interface for defining view controllers.
 
 ### Alert and File Choosers
@@ -44,7 +44,7 @@ The application theme can be changed by providing an implementation of the `Them
 
 ### Host Access
 
-The library provides implementations for accessing certain host operating system operations (namely opening the file manager and opening a command line interface). The current host OS can be accessed by calling `OperatingSystem.current()`.
+The library provides implementations for accessing certain host operating system operations (namely opening the file manager and opening a command line interface). The current host OS can be accessed by calling `OperatingSystem.hosting()`.
 
 ## Contributing
 
