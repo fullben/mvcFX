@@ -177,6 +177,6 @@ public final class ViewManager {
       }
     }
     // If no window is focused, return the newest (?) visible window
-    return visibleWindows.get(visibleWindows.size() - 1);
+    return visibleWindows.isEmpty() ? null : visibleWindows.get(visibleWindows.size() - 1);
   }
 }
