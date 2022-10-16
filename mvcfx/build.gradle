@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
-    id 'org.openjfx.javafxplugin' version '0.0.10'
-    id "com.diffplug.spotless" version "5.12.4"
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id "com.diffplug.spotless" version "6.11.0"
 }
 
 group 'de.fullben.mvcfx'
